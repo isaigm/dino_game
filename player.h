@@ -1,17 +1,30 @@
-#include "constants.h"
+#include <SFML/Graphics.hpp>
+static const sf::IntRect dino_frames[] =
+    {
+        {936, 2, 44, 47},
+        {980, 2, 44, 47},
+        {848, 2, 44, 47}};
 class Player
 {
 public:
     Player(sf::Texture &texture);
-    void animate();
+    void draw(sf::RenderTarget &target);
+    void animate(float dt);
     void update(float dt);
     void restart();
+    void set_player_speed(int speed)
+    {
+        player_speed = speed;
+    }
     float getX() const;
-    sf::Sprite &get_sprite();
+    float getY() const;
+    void die();
     bool collides_with(sf::Sprite &);
     bool is_on_ground = true;
+
 private:
     sf::Sprite sp;
-    int curr_frame_anim = 0;
+    int curr_frame = 0, player_speed;
+    float total_dt = 0;
     float x, y, ground, y_speed;
 };

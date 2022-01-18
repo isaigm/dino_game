@@ -1,8 +1,14 @@
 #include "constants.h"
+#ifndef BACKGROUND_H
+#define BACKGROUND_H
 class Background
 {
 public:
     Background(sf::FloatRect rect, float speed) : view(rect)
+    {
+        this->speed = speed;
+    }
+    void set_speed(float speed)
     {
         this->speed = speed;
     }
@@ -24,3 +30,4 @@ private:
     float speed;
     sf::View view;
 };
+#endif

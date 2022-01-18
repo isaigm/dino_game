@@ -1,28 +1,41 @@
 #include "player.h"
-
+#include "collision.h"
+#include "iostream"
+static const float GRAVITY = 900.0f;
+static const sf::IntRect die_frame = {1024, 2, 44, 47};
 Player::Player(sf::Texture &texture)
 {
     sp.setTexture(texture);
-    sp.setTextureRect(dino_frames[curr_frame_anim]);
+    sp.setTextureRect(dino_frames[curr_frame]);
     x = 20;
     ground = y = 125;
     y_speed = -500;
+    player_speed = 130;
     sp.setPosition(x, y);
 }
-void Player::animate()
+void Player::die()
 {
-    if (is_on_ground)
+    sp.setTextureRect(die_frame);
+}
+void Player::animate(float dt)
+{
+    total_dt += dt;
+    if (total_dt >= (1 / 10.f))
     {
-        sp.setTextureRect(dino_frames[curr_frame_anim]);
-        if (++curr_frame_anim >= 2)
+        if (is_on_ground)
         {
-            curr_frame_anim = 0;
+            sp.setTextureRect(dino_frames[curr_frame]);
+            if (++curr_frame >= 2)
+            {
+                curr_frame = 0;
+            }
         }
-    }
-    else
-    {
-        sp.setTextureRect(dino_frames[2]);
-        curr_frame_anim = 1;
+        else
+        {
+            sp.setTextureRect(dino_frames[2]);
+            curr_frame = 1;
+        }
+        total_dt = 0;
     }
 }
 void Player::update(float dt)
@@ -45,18 +58,24 @@ float Player::getX() const
 {
     return x;
 }
+float Player::getY() const
+{
+    return y;
+}
 void Player::restart()
 {
     is_on_ground = true;
     x = 20;
     y = 125;
     y_speed = -500;
+    player_speed = 130;
 }
-sf::Sprite &Player::get_sprite()
+
+void Player::draw(sf::RenderTarget &target)
 {
-    return sp;
+    target.draw(sp);
 }
 bool Player::collides_with(sf::Sprite &entity)
 {
-    return sp.getGlobalBounds().intersects(entity.getGlobalBounds());
+    return Collision::PixelPerfectTest(sp, entity);
 }
