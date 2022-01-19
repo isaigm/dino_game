@@ -32,12 +32,13 @@ public:
             max_score_digits[i].setPosition(455 + 11 * i, 10);
         }
         std::ifstream ifs("max_score.txt");
-        if(!ifs.is_open())
+        if (!ifs.is_open())
         {
             std::ofstream ofs("max_score.txt");
             ofs << 0;
             ofs.close();
-        }else
+        }
+        else
         {
             ifs >> max_score;
             ifs.close();
@@ -51,7 +52,7 @@ public:
     void draw(sf::RenderTarget &target)
     {
         target.draw(hi);
-        for(auto &mdigit: max_score_digits)
+        for (auto &mdigit : max_score_digits)
         {
             target.draw(mdigit);
         }
@@ -62,18 +63,22 @@ public:
             target.draw(sdigit);
         }
     }
-    void restart()
+    void set_max_score()
     {
-        _100more = false;
-        score = 0;
-        visible = true;
         std::ofstream ofs("max_score.txt");
         ofs << max_score;
         set_digits(max_score, max_score_digits);
         ofs.close();
     }
-    bool has_updated(){
-        if(_100more)
+    void restart()
+    {
+        _100more = false;
+        score = 0;
+        visible = true;
+    }
+    bool has_updated()
+    {
+        if (_100more)
         {
             _100more = false;
             return true;
@@ -120,8 +125,8 @@ private:
             return;
         }
         blink_time += dt;
-        if (blink_time >= 0.2f) //cada 0.2 s es visible y no visible, por lo tanto este if se cumple dos veces para conseguir un parpadeo
-        {                       //queremos 4 parpadeos, por lo tanto son 8 veces que debe pasar por este if                    
+        if (blink_time >= 0.2f) // cada 0.2 s es visible y no visible, por lo tanto este if se cumple dos veces para conseguir un parpadeo
+        {                       // queremos 4 parpadeos, por lo tanto son 8 veces que debe pasar por este if
             visible = !visible;
             cnt++;
             blink_time = 0;
