@@ -3,12 +3,12 @@
 #include "sfx.h"
 #include "button.h"
 #include "constants.h"
+#include "score.h"
 #include <ctime>
 #include <cstdlib>
 static const char *SPRITESHEET_FILE = "sprites.png";
 static const int N_CLOUDS = 5;
 static const float ground = 125 + 47;
-static int player_speed = 130;
 static const sf::IntRect cactus_frames[] =
     {
         {228, 2, 17, 35},
@@ -53,19 +53,21 @@ int main()
         std::cerr << "no se pudo cargar el archivo de sprites\n";
         exit(-1);
     }
+    int player_speed = 130;
     sf::RenderWindow window(sf::VideoMode(WIDTH, HEIGHT), "--Google Dino-- por Isaí García Mendoza ");
     Sfx jump("jump.mp3");
     Sfx die("die.mp3");
     std::vector<sf::Sprite> clouds;
     sf::Sprite game_over_screen(spritesheet), cactus(spritesheet);
+    Score score(spritesheet);
     Player player(spritesheet);
     Button btn(spritesheet);
+
     Background ground(sf::FloatRect(0, 12, WIDTH, HEIGHT / 2), player_speed);
     Background sky(sf::FloatRect(0, 0, WIDTH, HEIGHT / 2), 25);
     sf::Sprite bg(spritesheet); // fondo principal
     sf::Clock clock;
     float dist_x = player.getX(); // para saber que tanto del fondo actual, que mide 1200 pixeles de ancho, se ha recorrido
-    float dt = 0;
     bool main_bg = true;
     bool game_over = false;
     float next_coords = 1200;
@@ -80,12 +82,11 @@ int main()
     sky.getView().setViewport(sf::FloatRect(0, 0, 1, 0.5f));
     bg.setTextureRect(sf::IntRect(2, 53, 1200, 15));
     bg.setPosition({0, HEIGHT / 2});
-    bool increase_speed = true;
     sf::Sprite next_bg = bg; // fondo auxiliar, aunque igualmente se van a ir intercalando
 
     while (window.isOpen())
     {
-        dt = clock.restart().asSeconds();
+        float dt = clock.restart().asSeconds();
         sf::Event ev;
         while (window.pollEvent(ev))
         {
@@ -101,32 +102,41 @@ int main()
                     player.is_on_ground = false;
                 }
                 break;
+            case sf::Event::MouseButtonPressed:
+                if (ev.mouseButton.button == sf::Mouse::Button::Left && game_over)
+                {
+                    bg.setPosition({0, HEIGHT / 2});
+                    game_over = false;
+                    next_coords = 1200;
+                    main_bg = true;
+                    dist_x = 20;
+                    player_speed = 130;
+                    score.restart();
+                    player.restart();
+                    btn.restart();
+                    clouds.erase(clouds.begin(), clouds.end());
+                    init_clouds(clouds, spritesheet);
+                    cactus.setTextureRect(cactus_frames[get_random_number(0, N_CACTUS - 1)]);
+                    sky.getView().setCenter({WIDTH / 2, 80});
+                    ground.getView().setCenter({WIDTH / 2, 92});
+                    set_cactus_coords(cactus, 500);
+                }
+                break;
             default:
                 break;
             }
         }
-        if (game_over && sf::Mouse::isButtonPressed(sf::Mouse::Left))
-        {
-            bg.setPosition({0, HEIGHT / 2});
-            game_over = false;
-            next_coords = 1200;
-            main_bg = true;
-            dist_x = 20;
-            player_speed = 130;
-            player.restart();
-            btn.restart();
-            clouds.erase(clouds.begin(), clouds.end());
-            init_clouds(clouds, spritesheet);
-            cactus.setTextureRect(cactus_frames[get_random_number(0, N_CACTUS - 1)]);
-            sky.getView().setCenter({WIDTH / 2, 80});
-            ground.getView().setCenter({WIDTH / 2, 92});
-            set_cactus_coords(cactus, 500);
-        }
+
         if (!game_over)
         {
             dist_x += dt * player_speed;
             ground.set_speed(player_speed);
             player.set_player_speed(player_speed);
+            score.update(dt);
+            if(score.has_updated())
+            {
+                player_speed++;
+            }
             player.update(dt);
             sky.update(dt);
             ground.update(dt);
@@ -138,22 +148,11 @@ int main()
                 game_over = true;
                 continue;
             }
-            if (player.getX() > cactus.getPosition().x && increase_speed)
-            {
-                player_speed++;
-                increase_speed = false;
-            }
-            else
-            {
-                increase_speed = true;
-            }
-
             if (!ground.contains(cactus))
             {
                 cactus.setTextureRect(cactus_frames[get_random_number(0, N_CACTUS - 1)]);
                 set_cactus_coords(cactus, ground.getView().getCenter().x + WIDTH / 2 + 30);
             }
-
             for (auto &cloud : clouds)
             {
                 if (!sky.contains(cloud))
@@ -197,6 +196,8 @@ int main()
         player.draw(window);
         window.draw(next_bg);
         window.draw(cactus);
+        window.setView(window.getDefaultView());
+        score.draw(window);
         window.display();
     }
     return 0;

@@ -1,4 +1,6 @@
 #include <SFML/Graphics.hpp>
+#ifndef PLAYER_H
+#define PLAYER_H
 static const sf::IntRect dino_frames[] =
     {
         {936, 2, 44, 47},
@@ -28,3 +30,4 @@ private:
     float total_dt = 0;
     float x, y, ground, y_speed;
 };
+#endif

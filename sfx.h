@@ -1,6 +1,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 #include <iostream>
+#ifndef SFX_H
+#define SFX_H
 class Sfx
 {
 public:
@@ -22,3 +24,4 @@ private:
     sf::SoundBuffer buffer;
     sf::Sound sound;
 };
+#endif
